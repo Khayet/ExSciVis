@@ -108,7 +108,7 @@ void main()
     {      
         // get sample
         float s = get_sample_data(sampling_pos);
-        
+
         // apply the transfer functions to retrieve color and opacity
         vec4 color = texture(transfer_texture, vec2(s, s));
 
@@ -119,7 +119,6 @@ void main()
 
         num += 1;
 
-        
         // increment the ray sampling position
         sampling_pos  += ray_increment;
 
@@ -127,12 +126,11 @@ void main()
         inside_volume  = inside_volume_bounds(sampling_pos);
     }
 
-    sum.r = sum.r / num;
-    sum.g = sum.g / num;
-    sum.b = sum.b / num;
-    sum.a = sum.a / num;
+    dst.r = sum.r / num;
+    dst.g = sum.g / num;
+    dst.b = sum.b / num;
+    dst.a = sum.a / num;
 
-    dst = sum;
 #endif
     
 #if TASK == 12 || TASK == 13
