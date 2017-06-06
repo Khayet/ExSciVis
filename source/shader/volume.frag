@@ -112,11 +112,7 @@ void main()
         // apply the transfer functions to retrieve color and opacity
         vec4 color = texture(transfer_texture, vec2(s, s));
 
-        sum.r += color.r;
-        sum.g += color.g;
-        sum.b += color.b;
-        sum.a += color.a;
-
+        sum += color;
         num += 1;
 
         // increment the ray sampling position
@@ -126,10 +122,7 @@ void main()
         inside_volume  = inside_volume_bounds(sampling_pos);
     }
 
-    dst.r = sum.r / num;
-    dst.g = sum.g / num;
-    dst.b = sum.b / num;
-    dst.a = sum.a / num;
+    dst = sum / num;
 
 #endif
     
