@@ -65,7 +65,8 @@ void main()
 
 #if TASK == 10
     vec4 max_val = vec4(0.0, 0.0, 0.0, 0.0);
-    
+   
+
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
@@ -75,8 +76,10 @@ void main()
         float s = get_sample_data(sampling_pos);
                 
         // apply the transfer functions to retrieve color and opacity
-        vec4 color = texture(transfer_texture, vec2(s, s));
-           
+        vec4 color = texture(transfer_texture, vec2(s, s));           
+
+
+
         // this is the example for maximum intensity projection
         max_val.r = max(color.r, max_val.r);
         max_val.g = max(color.g, max_val.g);
@@ -91,9 +94,13 @@ void main()
     }
 
     dst = max_val;
+
 #endif 
     
 #if TASK == 11
+    vec4 sum = vec4(0.0, 0.0, 0.0, 0.0);
+    int num = 0;
+
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
@@ -101,9 +108,17 @@ void main()
     {      
         // get sample
         float s = get_sample_data(sampling_pos);
+        
+        // apply the transfer functions to retrieve color and opacity
+        vec4 color = texture(transfer_texture, vec2(s, s));
 
-        // dummy code
-        dst = vec4(sampling_pos, 1.0);
+        sum.r += color.r;
+        sum.g += color.g;
+        sum.b += color.b;
+        sum.a += color.a;
+
+        num += 1;
+
         
         // increment the ray sampling position
         sampling_pos  += ray_increment;
@@ -111,6 +126,13 @@ void main()
         // update the loop termination condition
         inside_volume  = inside_volume_bounds(sampling_pos);
     }
+
+    sum.r = sum.r / num;
+    sum.g = sum.g / num;
+    sum.b = sum.b / num;
+    sum.a = sum.a / num;
+
+    dst = sum;
 #endif
     
 #if TASK == 12 || TASK == 13
