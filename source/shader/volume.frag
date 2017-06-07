@@ -47,6 +47,25 @@ get_sample_data(vec3 in_sampling_pos)
 
 }
 
+vec3
+get_gradient(vec3 in_sampling_pos)
+{
+    float voxel_size = max_bounds.x / float(volume_dimensions.x);
+
+    // voxel to the left of sampling position
+    vec3 left_voxel_pos = vec3(in_sampling_pos.x - voxel_size,
+                               in_sampling_pos.y, in_sampling_pos.z);
+
+    // voxel to the right of sampling position
+    vec3 right_voxel_pos = vec3(in_sampling_pos.x - voxel_size,
+                                in_sampling_pos.y, in_sampling_pos.z);
+
+    // ? check if inside volume ?
+
+    // central density difference of neighboring voxels
+    return vec3(get_sample_data(right_voxel_pos) - get_sample_data(left_voxel_pos), 0.0, 0.0);
+}
+
 void main()
 {
     /// One step trough the volume
@@ -59,24 +78,24 @@ void main()
 
     /// check if we are inside volume
     bool inside_volume = inside_volume_bounds(sampling_pos);
-    
+
     if (!inside_volume)
         discard;
 
 #if TASK == 10
     vec4 max_val = vec4(0.0, 0.0, 0.0, 0.0);
-   
+
 
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
-    while (inside_volume) 
-    {      
+    while (inside_volume)
+    {
         // get sample
         float s = get_sample_data(sampling_pos);
-                
+
         // apply the transfer functions to retrieve color and opacity
-        vec4 color = texture(transfer_texture, vec2(s, s));           
+        vec4 color = texture(transfer_texture, vec2(s, s));
 
 
 
@@ -85,7 +104,7 @@ void main()
         max_val.g = max(color.g, max_val.g);
         max_val.b = max(color.b, max_val.b);
         max_val.a = max(color.a, max_val.a);
-        
+
         // increment the ray sampling position
         sampling_pos  += ray_increment;
 
@@ -95,8 +114,8 @@ void main()
 
     dst = max_val;
 
-#endif 
-    
+#endif
+
 #if TASK == 11
     vec3 sum_color = vec3(0.0, 0.0, 0.0);
     float sum_a = 0.0;
@@ -106,7 +125,7 @@ void main()
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
     while (inside_volume)
-    {      
+    {
         // get sample
         float s = get_sample_data(sampling_pos);
 
@@ -129,7 +148,7 @@ void main()
     dst = vec4(sum_color / sum_a, sum_a / num);
 
 #endif
-    
+
 #if TASK == 12 || TASK == 13
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
@@ -137,31 +156,31 @@ void main()
 
     while (inside_volume)
     {
-        // get sample
         float s = get_sample_data(sampling_pos);
 
-        if (s > iso_value)
-        {
-            dst = vec4(iso_value);
-            break;
-        }
+        if (s <= iso_value)
+            continue
 
-        // increment the ray sampling position
-        sampling_pos += ray_increment;
+        dst = vec4(iso_value);
+
 #if TASK == 13 // Binary Search
         IMPLEMENT;
 #endif
 #if ENABLE_LIGHTNING == 1 // Add Shading
-        IMPLEMENTLIGHT;
+        dst.a = 0.0;
+        vec3 gradient = get_gradient(sampling_pos);
+
 #if ENABLE_SHADOWING == 1 // Add Shadows
         IMPLEMENTSHADOW;
 #endif
 #endif
+        // increment the ray sampling position
+        sampling_pos += ray_increment;
 
         // update the loop termination condition
         inside_volume = inside_volume_bounds(sampling_pos);
     }
-#endif 
+#endif
 
 #if TASK == 31
     // the traversal loop,
@@ -188,7 +207,7 @@ void main()
         // update the loop termination condition
         inside_volume = inside_volume_bounds(sampling_pos);
     }
-#endif 
+#endif
 
     // return the calculated color value
     FragColor = dst;
