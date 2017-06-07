@@ -54,16 +54,35 @@ get_gradient(vec3 in_sampling_pos)
 
     // voxel to the left of sampling position
     vec3 left_voxel_pos = vec3(in_sampling_pos.x - voxel_size,
-                               in_sampling_pos.y, in_sampling_pos.z);
+                               in_sampling_pos.y,
+                               in_sampling_pos.z);
 
     // voxel to the right of sampling position
-    vec3 right_voxel_pos = vec3(in_sampling_pos.x - voxel_size,
-                                in_sampling_pos.y, in_sampling_pos.z);
+    vec3 right_voxel_pos = vec3(in_sampling_pos.x + voxel_size,
+                                in_sampling_pos.y,
+                                in_sampling_pos.z);
 
-    // ? check if inside volume ?
+    // ? calculate x and y central differences ?
+    vec3 up_voxel_pos = vec3(in_sampling_pos.x,
+                              in_sampling_pos.y - voxel_size,
+                              in_sampling_pos.z);
+
+    vec3 down_voxel_pos = vec3(in_sampling_pos.x,
+                              in_sampling_pos.y + voxel_size,
+                              in_sampling_pos.z);
+
+    vec3 front_voxel_pos = vec3(in_sampling_pos.x,
+                                in_sampling_pos.y,
+                                in_sampling_pos.z - voxel_size);
+
+    vec3 back_voxel_pos = vec3(in_sampling_pos.x,
+                               in_sampling_pos.y,
+                               in_sampling_pos.z + voxel_size);
 
     // central density difference of neighboring voxels
-    return vec3(get_sample_data(right_voxel_pos) - get_sample_data(left_voxel_pos), 0.0, 0.0);
+    return vec3(get_sample_data(left_voxel_pos) - get_sample_data(right_voxel_pos),
+                get_sample_data(up_voxel_pos) - get_sample_data(down_voxel_pos),
+                get_sample_data(front_voxel_pos) - get_sample_data(back_voxel_pos));
 }
 
 void main()
@@ -174,8 +193,20 @@ void main()
         IMPLEMENT;
 #endif
 #if ENABLE_LIGHTNING == 1 // Add Shading
-        dst.a = 0.0;
         vec3 gradient = get_gradient(sampling_pos);
+
+        // diffuse:
+        vec3 normal = gradient;
+        // vec3 normal = vec3(gradient.z, gradient.x, gradient.y);
+        vec3 diffuse = light_diffuse_color * dot(normal, -light_position);
+
+        // specular:
+        vec3 halfway = normalize(-light_position + (-camera_location));
+        vec3 specular = light_specular_color * pow(dot(normal, halfway), light_ref_coef);
+
+        // dst = vec4(normal, 1.0);
+        dst = vec4(light_ambient_color + diffuse + specular, 1.0);
+
 
 #if ENABLE_SHADOWING == 1 // Add Shadows
         IMPLEMENTSHADOW;
