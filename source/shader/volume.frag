@@ -159,7 +159,14 @@ void main()
         float s = get_sample_data(sampling_pos);
 
         if (s <= iso_value)
-            continue
+        {
+            // increment the ray sampling position
+            sampling_pos += ray_increment;
+
+            // update the loop termination condition
+            inside_volume = inside_volume_bounds(sampling_pos);
+            continue;
+        }
 
         dst = vec4(iso_value);
 
@@ -174,11 +181,8 @@ void main()
         IMPLEMENTSHADOW;
 #endif
 #endif
-        // increment the ray sampling position
-        sampling_pos += ray_increment;
 
-        // update the loop termination condition
-        inside_volume = inside_volume_bounds(sampling_pos);
+        break;
     }
 #endif
 
