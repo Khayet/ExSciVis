@@ -52,19 +52,23 @@ get_gradient(vec3 in_sampling_pos)
 {
     /*
      * The gradient is the direction of the steepest ascend.
-     * --> The surface gradients of the skull should all point inward,
+     * -->
+     * The surface gradients of the skull should all point inward
      * and the surface normals should simply be negative gradients.
      */
 
-    float d = max_bounds.x / float(volume_dimensions.x);
+    float dx = max_bounds.x / float(volume_dimensions.x);
+    float dy = max_bounds.y / float(volume_dimensions.y);
+    float dz = max_bounds.z / float(volume_dimensions.z);
+
     float x = in_sampling_pos.x;
     float y = in_sampling_pos.y;
     float z = in_sampling_pos.z;
 
     // central density difference of neighboring voxels
-    return vec3(get_sample_data(vec3(x+d, y, z)) - get_sample_data(vec3(x-d, y, z)),
-                get_sample_data(vec3(x, y+d, z)) - get_sample_data(vec3(x, y-d, z)),
-                get_sample_data(vec3(x, y, z+d)) - get_sample_data(vec3(x, y, z-d)));
+    return vec3(get_sample_data(vec3(x+dx, y, z)) - get_sample_data(vec3(x-dx, y, z)),
+                get_sample_data(vec3(x, y+dy, z)) - get_sample_data(vec3(x, y-dy, z)),
+                get_sample_data(vec3(x, y, z+dz)) - get_sample_data(vec3(x, y, z-dz)));
 }
 
 void main()
@@ -97,8 +101,6 @@ void main()
 
         // apply the transfer functions to retrieve color and opacity
         vec4 color = texture(transfer_texture, vec2(s, s));
-
-
 
         // this is the example for maximum intensity projection
         max_val.r = max(color.r, max_val.r);
