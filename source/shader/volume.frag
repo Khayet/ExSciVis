@@ -54,41 +54,17 @@ get_gradient(vec3 in_sampling_pos)
      * The gradient is the direction of the steepest ascend.
      * --> The surface gradients of the skull should all point inward,
      * and the surface normals should simply be negative gradients.
-     *
-     * I'm (Jakob) not sure if the following is correct, because I don't know
-     * the orientation of the volume coordinate system.
      */
 
-    float voxel_size = max_bounds.x / float(volume_dimensions.x);
-
-    vec3 left = vec3(in_sampling_pos.x - voxel_size,
-                     in_sampling_pos.y,
-                     in_sampling_pos.z);
-
-    vec3 right = vec3(in_sampling_pos.x + voxel_size,
-                      in_sampling_pos.y,
-                      in_sampling_pos.z);
-
-    vec3 up = vec3(in_sampling_pos.x,
-                   in_sampling_pos.y + voxel_size,
-                   in_sampling_pos.z);
-
-    vec3 down = vec3(in_sampling_pos.x,
-                     in_sampling_pos.y - voxel_size,
-                     in_sampling_pos.z);
-
-    vec3 front = vec3(in_sampling_pos.x,
-                      in_sampling_pos.y,
-                      in_sampling_pos.z - voxel_size);
-
-    vec3 back = vec3(in_sampling_pos.x,
-                     in_sampling_pos.y,
-                     in_sampling_pos.z + voxel_size);
+    float d = max_bounds.x / float(volume_dimensions.x);
+    float x = in_sampling_pos.x;
+    float y = in_sampling_pos.y;
+    float z = in_sampling_pos.z;
 
     // central density difference of neighboring voxels
-    return vec3(get_sample_data(right) - get_sample_data(left),
-                get_sample_data(up) - get_sample_data(down),
-                get_sample_data(front) - get_sample_data(back));
+    return vec3(get_sample_data(vec3(x+d, y, z)) - get_sample_data(vec3(x-d, y, z)),
+                get_sample_data(vec3(x, y+d, z)) - get_sample_data(vec3(x, y-d, z)),
+                get_sample_data(vec3(x, y, z+d)) - get_sample_data(vec3(x, y, z-d)));
 }
 
 void main()
