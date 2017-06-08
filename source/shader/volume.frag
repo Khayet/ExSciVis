@@ -50,39 +50,45 @@ get_sample_data(vec3 in_sampling_pos)
 vec3
 get_gradient(vec3 in_sampling_pos)
 {
+    /*
+     * The gradient is the direction of the steepest ascend.
+     * --> The surface gradients of the skull should all point inward,
+     * and the surface normals should simply be negative gradients.
+     *
+     * I'm (Jakob) not sure if the following is correct, because I don't know
+     * the orientation of the volume coordinate system.
+     */
+
     float voxel_size = max_bounds.x / float(volume_dimensions.x);
 
-    // voxel to the left of sampling position
-    vec3 left_voxel_pos = vec3(in_sampling_pos.x - voxel_size,
-                               in_sampling_pos.y,
-                               in_sampling_pos.z);
+    vec3 left = vec3(in_sampling_pos.x - voxel_size,
+                     in_sampling_pos.y,
+                     in_sampling_pos.z);
 
-    // voxel to the right of sampling position
-    vec3 right_voxel_pos = vec3(in_sampling_pos.x + voxel_size,
-                                in_sampling_pos.y,
-                                in_sampling_pos.z);
+    vec3 right = vec3(in_sampling_pos.x + voxel_size,
+                      in_sampling_pos.y,
+                      in_sampling_pos.z);
 
-    // ? calculate x and y central differences ?
-    vec3 up_voxel_pos = vec3(in_sampling_pos.x,
-                              in_sampling_pos.y - voxel_size,
-                              in_sampling_pos.z);
+    vec3 up = vec3(in_sampling_pos.x,
+                   in_sampling_pos.y + voxel_size,
+                   in_sampling_pos.z);
 
-    vec3 down_voxel_pos = vec3(in_sampling_pos.x,
-                              in_sampling_pos.y + voxel_size,
-                              in_sampling_pos.z);
+    vec3 down = vec3(in_sampling_pos.x,
+                     in_sampling_pos.y - voxel_size,
+                     in_sampling_pos.z);
 
-    vec3 front_voxel_pos = vec3(in_sampling_pos.x,
-                                in_sampling_pos.y,
-                                in_sampling_pos.z - voxel_size);
+    vec3 front = vec3(in_sampling_pos.x,
+                      in_sampling_pos.y,
+                      in_sampling_pos.z - voxel_size);
 
-    vec3 back_voxel_pos = vec3(in_sampling_pos.x,
-                               in_sampling_pos.y,
-                               in_sampling_pos.z + voxel_size);
+    vec3 back = vec3(in_sampling_pos.x,
+                     in_sampling_pos.y,
+                     in_sampling_pos.z + voxel_size);
 
     // central density difference of neighboring voxels
-    return vec3(get_sample_data(left_voxel_pos) - get_sample_data(right_voxel_pos),
-                get_sample_data(up_voxel_pos) - get_sample_data(down_voxel_pos),
-                get_sample_data(front_voxel_pos) - get_sample_data(back_voxel_pos));
+    return vec3(get_sample_data(right) - get_sample_data(left),
+                get_sample_data(up) - get_sample_data(down),
+                get_sample_data(front) - get_sample_data(back));
 }
 
 void main()
@@ -198,12 +204,9 @@ void main()
         {
             vec3 between = (out_sampling_pos + sampling_pos) / 2.0;
 
-            if (get_sample_data(between) > iso_value)
-            {
+            if (get_sample_data(between) > iso_value) {
                 sampling_pos = between;
-            }
-            else
-            {
+            } else {
                 out_sampling_pos = between;
             }
         }
@@ -213,8 +216,7 @@ void main()
         vec3 gradient = get_gradient(sampling_pos);
 
         // diffuse:
-        vec3 normal = gradient;
-        // vec3 normal = vec3(gradient.z, gradient.x, gradient.y);
+        vec3 normal = -gradient;
         vec3 diffuse = light_diffuse_color * dot(normal, -light_position);
 
         // specular:
