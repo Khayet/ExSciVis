@@ -27,3 +27,5 @@ cmake_out
 /framework/imgui_impl.cpp
 framework/extra_fonts/ProggyClean.zip
 framework/extra_fonts/ProggySmall.zip
+
+*.sublime-project

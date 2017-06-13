@@ -206,7 +206,21 @@ void main()
 
 
 #if ENABLE_SHADOWING == 1 // Add Shadows
-        IMPLEMENTSHADOW;
+        sampling_pos = sampling_pos + normal * 0.1;
+        vec3 sampling_to_light = normalize(sampling_pos - light_position) * sampling_distance;
+
+        do
+        {
+            float s2 = get_sample_data(sampling_pos);
+            sampling_pos += sampling_to_light;
+
+            if (get_sample_data(sampling_pos) > iso_value)
+            {
+                dst = vec4(0.0,0.0,0.0,1.0);
+            }
+        }
+        while (get_sample_data(sampling_pos) <= iso_value && inside_volume_bounds(sampling_pos));
+
 #endif
 #endif
 
