@@ -195,15 +195,15 @@ void main()
 
         // diffuse:
         vec3 normal = -gradient;
-        vec3 diffuse = light_diffuse_color * dot(normal, -light_position);
+        vec3 diffuse = light_diffuse_color * clamp(dot(normal, -light_position), 0.0, 1.0);
 
         // specular:
         vec3 halfway = normalize(-light_position + (-camera_location));
-        vec3 specular = light_specular_color * pow(dot(normal, halfway), light_ref_coef);
+        vec3 specular = light_specular_color * pow(clamp(dot(normal, halfway), 0.0, 1.0), light_ref_coef);
 
         // dst = vec4(normal, 1.0);
+        //dst = vec4(light_ambient_color + diffuse + specular, 1.0);
         dst = vec4(light_ambient_color + diffuse + specular, 1.0);
-
 
 #if ENABLE_SHADOWING == 1 // Add Shadows
         sampling_pos = sampling_pos + normal * 0.1;
@@ -216,7 +216,8 @@ void main()
 
             if (get_sample_data(sampling_pos) > iso_value)
             {
-                dst = vec4(0.0,0.0,0.0,1.0);
+                dst = vec4(light_ambient_color, 1.0);
+                //dst = vec4(0.0,0.0,0.0,1.0);
             }
         }
         while (get_sample_data(sampling_pos) <= iso_value && inside_volume_bounds(sampling_pos));
