@@ -71,6 +71,27 @@ get_gradient(vec3 in_sampling_pos)
                 get_sample_data(vec3(x, y, z+dz)) - get_sample_data(vec3(x, y, z-dz)));
 }
 
+vec4
+shade(vec3 in_sampling_pos)
+{
+    vec3 gradient = get_gradient(in_sampling_pos);
+
+    // diffuse:
+    vec3 normal = -gradient;
+    vec3 light_vec = light_position - in_sampling_pos;
+    vec3 diffuse = light_diffuse_color * clamp(dot(normal, light_vec), 0.0, 1.0);
+
+    // specular:
+    // TODO: check this
+    vec3 camera_vec = camera_location - in_sampling_pos;
+    //vec3 halfway = normalize(-light_position + (-camera_location));
+    vec3 halfway = normalize(light_vec + camera_vec);
+    vec3 specular = light_specular_color * pow(clamp(dot(normal, halfway), 0.0, 1.0), light_ref_coef);
+
+    return vec4(light_ambient_color + diffuse + specular, 1.0);
+}
+
+
 void main()
 {
     /// One step trough the volume
@@ -191,21 +212,9 @@ void main()
 
 #endif
 #if ENABLE_LIGHTNING == 1 // Add Shading
-        vec3 gradient = get_gradient(sampling_pos);
 
-        // diffuse:
-        vec3 normal = -gradient;
-        vec3 light_vec = light_position - sampling_pos;
-        vec3 diffuse = light_diffuse_color * clamp(dot(normal, light_vec), 0.0, 1.0);
 
-        // specular:
-        // TODO: check this
-        vec3 camera_vec = camera_location - sampling_pos;
-        //vec3 halfway = normalize(-light_position + (-camera_location));
-        vec3 halfway = normalize(light_vec + camera_vec);
-        vec3 specular = light_specular_color * pow(clamp(dot(normal, halfway), 0.0, 1.0), light_ref_coef);
-
-        dst = vec4(light_ambient_color + diffuse + specular, 1.0);
+        dst = shade(sampling_position);
 
 
 #if ENABLE_SHADOWING == 1 // Add Shadows
