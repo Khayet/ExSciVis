@@ -72,13 +72,9 @@ get_gradient(vec3 in_sampling_pos)
 }
 
 vec4
-shade(vec3 in_sampling_pos)
+shade(vec3 in_sampling_pos, vec3 normal, vec3 light_vec)
 {
-    vec3 gradient = get_gradient(in_sampling_pos);
-
     // diffuse:
-    vec3 normal = -gradient;
-    vec3 light_vec = light_position - in_sampling_pos;
     vec3 diffuse = light_diffuse_color * clamp(dot(normal, light_vec), 0.0, 1.0);
 
     // specular:
@@ -213,11 +209,15 @@ void main()
 #endif
 #if ENABLE_LIGHTNING == 1 // Add Shading
 
+        vec3 gradient = get_gradient(sampling_pos);
+        vec3 normal = -gradient;
+        vec3 light_vec = light_position - sampling_pos;
 
-        dst = shade(sampling_position);
+        dst = shade(sampling_pos, normal, light_vec);
 
 
 #if ENABLE_SHADOWING == 1 // Add Shadows
+        
         sampling_pos = sampling_pos + normal * 0.1;
         vec3 sampling_to_light = normalize(light_vec) * sampling_distance;
 
