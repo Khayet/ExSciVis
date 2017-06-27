@@ -200,7 +200,9 @@ void main()
 
         // specular:
         // TODO: check this
-        vec3 halfway = normalize(-light_position + (-camera_location));
+        vec3 camera_vec = camera_location - sampling_pos;
+        //vec3 halfway = normalize(-light_position + (-camera_location));
+        vec3 halfway = normalize(light_vec + camera_vec);
         vec3 specular = light_specular_color * pow(clamp(dot(normal, halfway), 0.0, 1.0), light_ref_coef);
 
         dst = vec4(light_ambient_color + diffuse + specular, 1.0);
@@ -218,7 +220,6 @@ void main()
             if (get_sample_data(sampling_pos) > iso_value)
             {
                 dst = vec4(light_ambient_color, 1.0);
-                //dst = vec4(0.0,0.0,0.0,1.0);
             }
         }
         while (get_sample_data(sampling_pos) <= iso_value && inside_volume_bounds(sampling_pos));
@@ -234,16 +235,25 @@ void main()
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
-    while (inside_volume)
+    
+    //vec3 inten = vec3(0.0, 0.0, 0.0);
+    vec3 inten = texture(transfer_texture, vec2(get_sample_data(sampling_pos), get_sample_data(sampling_pos))).rgb;
+    float trans = 1.0;
+
+    while (inside_volume && trans > 0.01)
     {
         // get sample
 #if ENABLE_OPACITY_CORRECTION == 1 // Opacity Correction
         IMPLEMENT;
 #else
         float s = get_sample_data(sampling_pos);
+        vec4 color = texture(transfer_texture, vec2(s, s));
 #endif
         // dummy code
-        dst = vec4(light_specular_color, 1.0);
+        trans *= 1 - color.a;
+        vec3 local_intensity = color.rgb * color.a;
+        inten += local_intensity * trans;
+        dst = vec4(inten, 1.0);
 
         // increment the ray sampling position
         sampling_pos += ray_increment;
