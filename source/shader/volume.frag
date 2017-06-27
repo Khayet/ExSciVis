@@ -268,13 +268,19 @@ void main()
         trans = 1 - color.a;
         sampling_pos += ray_increment;
 #endif
+#if ENABLE_LIGHTNING == 1 // Add Shading
+        // vec3 local_intensity = color.rgb * alpha;
+        vec3 gradient = get_gradient(sampling_pos);
+        vec3 normal = -gradient;
+        vec3 light_vec = light_position - sampling_pos;
+
+        vec3 local_intensity = color.rgb * shade(sampling_pos, normal, light_vec).rgb * alpha;
+#else
         vec3 local_intensity = color.rgb * alpha;
+#endif
         inten += local_intensity * trans;
 
 
-#if ENABLE_LIGHTNING == 1 // Add Shading
-        IMPLEMENT;
-#endif
 
         inside_volume = inside_volume_bounds(sampling_pos);
     }
