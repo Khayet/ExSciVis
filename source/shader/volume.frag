@@ -234,24 +234,34 @@ void main()
 #if TASK == 31
 
     // FRONT-TO-BACK:
-    //vec3 inten = vec3(0.0, 0.0, 0.0);
-/*     vec3 inten = texture(transfer_texture, vec2(get_sample_data(sampling_pos), get_sample_data(sampling_pos))).rgb;
+    vec3 inten = texture(transfer_texture, vec2(get_sample_data(sampling_pos), get_sample_data(sampling_pos))).rgb;
     float trans = 1.0;
 
+    float actual_sampling_distance = sampling_distance;
     while (inside_volume && trans > 0.01)
     {
-#if ENABLE_OPACITY_CORRECTION == 1 // Opacity Correction
-        IMPLEMENT;
-#else
         float s = get_sample_data(sampling_pos);
         vec4 color = texture(transfer_texture, vec2(s, s));
-#endif
-        trans *= 1 - color.a;
-        vec3 local_intensity = color.rgb * color.a;
-        inten += local_intensity * trans;
+
+#if ENABLE_OPACITY_CORRECTION == 1 // Opacity Correction
+        float correction = actual_sampling_distance / sampling_distance;
+        float alpha = 1 - pow(1 - color.a, correction);
+        trans *= pow(1 - color.a, correction);
 
         // increment the ray sampling position
+        float adapt = clamp(1.0 / length(get_gradient(sampling_pos)), 0.1, 2.0);
+
+        sampling_pos += ray_increment * adapt;
+        actual_sampling_distance = length(ray_increment * adapt);
+
+#else
+        float alpha = color.a;
+        trans = 1 - color.a;
         sampling_pos += ray_increment;
+#endif
+        vec3 local_intensity = color.rgb * alpha;
+        inten += local_intensity * trans;
+
 
 #if ENABLE_LIGHTNING == 1 // Add Shading
         IMPLEMENT;
@@ -259,12 +269,12 @@ void main()
 
         inside_volume = inside_volume_bounds(sampling_pos);
     }
-    dst = vec4(inten, 1.0); */
+    dst = vec4(inten, 1.0);
 
 
 
     // BACK-TO-FRONT:
-    while (inside_volume_bounds(sampling_pos))
+/*     while (inside_volume_bounds(sampling_pos))
     {
         sampling_pos += ray_increment;
     }
@@ -291,7 +301,7 @@ void main()
 
         inside_volume = inside_volume_bounds(sampling_pos);
     }
-    dst = vec4(inten, 1.0);
+    dst = vec4(inten, 1.0); */
 
 #endif // TASK 31
 
