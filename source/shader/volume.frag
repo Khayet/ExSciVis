@@ -253,23 +253,20 @@ void main()
         vec4 color = texture(transfer_texture, vec2(s, s));
 
 #if ENABLE_OPACITY_CORRECTION == 1 // Opacity Correction
-        float correction = (sampling_distance / sampling_distance_ref);
+        float correction = (sampling_distance / sampling_distance_ref) * 255;
         float alpha = 1 - pow(1 - color.a, correction);
         trans *= pow(1 - color.a, correction);
-
-        // sampling_pos += ray_increment;
-
 #else
         float alpha = color.a;
-        trans = 1 - color.a;
+        trans = 1 - alpha;
 #endif
+
 #if ENABLE_LIGHTNING == 1 // Add Shading
-        // vec3 local_intensity = color.rgb * alpha;
         vec3 gradient = get_gradient(sampling_pos);
         vec3 normal = -gradient;
         vec3 light_vec = light_position - sampling_pos;
 
-        vec3 local_intensity = color.rgb * shade(sampling_pos, normal, light_vec).rgb * alpha;
+        vec3 local_intensity = color.rgb * alpha * shade(sampling_pos, normal, light_vec).rgb;
 #else
         vec3 local_intensity = color.rgb * alpha;
 #endif
