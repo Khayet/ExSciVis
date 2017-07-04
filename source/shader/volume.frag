@@ -78,9 +78,7 @@ shade(vec3 in_sampling_pos, vec3 normal, vec3 light_vec)
     vec3 diffuse = light_diffuse_color * clamp(dot(normal, light_vec), 0.0, 1.0);
 
     // specular:
-    // TODO: check this
     vec3 camera_vec = camera_location - in_sampling_pos;
-    //vec3 halfway = normalize(-light_position + (-camera_location));
     vec3 halfway = normalize(light_vec + camera_vec);
     vec3 specular = light_specular_color * pow(clamp(dot(normal, halfway), 0.0, 1.0), light_ref_coef);
 
@@ -244,8 +242,9 @@ void main()
 
     // FRONT-TO-BACK:
     // vec3 inten = texture(transfer_texture, vec2(get_sample_data(sampling_pos), get_sample_data(sampling_pos))).rgb;
+
+
     vec3 inten = vec3(0.0);
-    
     float trans = 1.0;
 
     float actual_sampling_distance = sampling_distance;
@@ -260,7 +259,9 @@ void main()
         trans *= pow(1 - color.a, correction);
 #else
         float alpha = color.a;
-        trans = 1 - alpha;
+        // trans = 1 - alpha;
+        trans *= 1 - alpha;
+
 #endif
 
 #if ENABLE_LIGHTNING == 1 // Add Shading
@@ -268,7 +269,10 @@ void main()
         vec3 normal = -gradient;
         vec3 light_vec = light_position - sampling_pos;
 
-        vec3 local_intensity = color.rgb * alpha * shade(sampling_pos, normal, light_vec).rgb;
+        vec3 local_intensity = 5.0 * color.rgb * alpha * shade(sampling_pos, normal, light_vec).rgb;
+
+        // vec3 local_intensity = alpha * shade(sampling_pos, normal, light_vec).rgb;
+
 #else
         vec3 local_intensity = color.rgb * alpha;
 #endif
