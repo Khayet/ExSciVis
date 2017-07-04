@@ -243,7 +243,9 @@ void main()
 #if TASK == 31
 
     // FRONT-TO-BACK:
-    vec3 inten = texture(transfer_texture, vec2(get_sample_data(sampling_pos), get_sample_data(sampling_pos))).rgb;
+    // vec3 inten = texture(transfer_texture, vec2(get_sample_data(sampling_pos), get_sample_data(sampling_pos))).rgb;
+    vec3 inten = vec3(0.0);
+    
     float trans = 1.0;
 
     float actual_sampling_distance = sampling_distance;
