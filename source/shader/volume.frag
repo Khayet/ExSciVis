@@ -253,20 +253,15 @@ void main()
         vec4 color = texture(transfer_texture, vec2(s, s));
 
 #if ENABLE_OPACITY_CORRECTION == 1 // Opacity Correction
-        float correction = actual_sampling_distance / sampling_distance;
+        float correction = (sampling_distance / sampling_distance_ref);
         float alpha = 1 - pow(1 - color.a, correction);
         trans *= pow(1 - color.a, correction);
 
-        // increment the ray sampling position
-        float adapt = clamp(1.0 / length(get_gradient(sampling_pos)), 0.1, 2.0);
-
-        sampling_pos += ray_increment * adapt;
-        actual_sampling_distance = length(ray_increment * adapt);
+        // sampling_pos += ray_increment;
 
 #else
         float alpha = color.a;
         trans = 1 - color.a;
-        sampling_pos += ray_increment;
 #endif
 #if ENABLE_LIGHTNING == 1 // Add Shading
         // vec3 local_intensity = color.rgb * alpha;
@@ -280,7 +275,7 @@ void main()
 #endif
         inten += local_intensity * trans;
 
-
+        sampling_pos += ray_increment;
 
         inside_volume = inside_volume_bounds(sampling_pos);
     }
