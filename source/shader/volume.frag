@@ -6,6 +6,7 @@
 #define ENABLE_OPACITY_CORRECTION 0
 #define ENABLE_LIGHTNING 0
 #define ENABLE_SHADOWING 0
+#define FRONT_TO_BACK 1
 
 in vec3 ray_entry_position;
 
@@ -242,10 +243,9 @@ void main()
 
 #if TASK == 31
 
-    // FRONT-TO-BACK:
+#if FRONT_TO_BACK == 1
+
     // vec3 inten = texture(transfer_texture, vec2(get_sample_data(sampling_pos), get_sample_data(sampling_pos))).rgb;
-
-
     vec3 inten = vec3(0.0);
     float trans = 1.0;
 
@@ -264,7 +264,7 @@ void main()
         // trans = 1 - alpha;
         trans *= 1 - alpha;
 
-#endif
+#endif // ENABLE_OPACITY_CORRECTION
 
 #if ENABLE_LIGHTNING == 1 // Add Shading
         vec3 gradient = get_gradient(sampling_pos);
@@ -286,10 +286,12 @@ void main()
     }
     dst = vec4(inten, 1.0);
 
+#endif // FRONT_TO_BACK == 1
 
 
-    // BACK-TO-FRONT:
-/*     while (inside_volume_bounds(sampling_pos))
+#if FRONT_TO_BACK == 0 // BACK-TO-FRONT:
+    
+    while (inside_volume_bounds(sampling_pos))
     {
         sampling_pos += ray_increment;
     }
@@ -316,8 +318,9 @@ void main()
 
         inside_volume = inside_volume_bounds(sampling_pos);
     }
-    dst = vec4(inten, 1.0); */
+    dst = vec4(inten, 1.0);
 
+#endif // FRONT_TO_BACK == 0
 #endif // TASK 31
 
     // return the calculated color value
