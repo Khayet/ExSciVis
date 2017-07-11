@@ -216,7 +216,9 @@ void main()
 
 #if ENABLE_SHADOWING == 1 // Add Shadows
         
-        sampling_pos = sampling_pos + normal * 0.1;
+        // sampling_pos = sampling_pos + normal * 0.1;
+        sampling_pos = sampling_pos + normalize(normal) * 0.01;
+        
         vec3 sampling_to_light = normalize(light_vec) * sampling_distance;
 
         do
